@@ -1,3 +1,14 @@
+**FNCM project:**
+
+word dataset generation: `python3 ds2.py`
+prediction accuracy: `python3 predict.py`
+TO DO: noise
+
+python version: 3.7.17
+to install packages run `python3 -m pip install -r requirements.txt`
+
+------
+
 # Origins-of-VWFA
 
 This is the repository for the November 2021 PNAS article:

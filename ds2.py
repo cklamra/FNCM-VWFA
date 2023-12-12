@@ -221,7 +221,7 @@ def CreateMiniImageSet(path_in='imagesets/val/', path_out='imagesets_nex/val/',n
         print (count,)
         #print('file:',f)
         target_path = path_out+f
-        os.mkdir(target_path)
+        os.makedirs(target_path, exists_ok=True)
         impath_list = os.listdir(path_in+'/'+f)
         print ("len(impath_list)", len(impath_list))
         #impath_list.remove('._.DS_Store')
@@ -240,7 +240,7 @@ def CreateMiniImageSet(path_in='imagesets/val/', path_out='imagesets_nex/val/',n
     
     return 'done'
 
-def gen2(savepath='', text = 'text', index=1, mirror=False, invert=False, fontname='Arial', W = 500, H = 500, size=24, xshift=0, yshift=0, upper=0, show=None):
+def gen2(savepath='', text = 'text', index=1, mirror=False, invert=False, fontname='Inter-Medium', W = 500, H = 500, size=24, xshift=0, yshift=0, upper=0, show=None):
     if upper:
         text = text.upper()
     if invert:
@@ -264,14 +264,16 @@ def gen2(savepath='', text = 'text', index=1, mirror=False, invert=False, fontna
 ##        img.show()
         return img
         
-def CreateMiniWordSet(path_out='wordsets_100cat_100ex/',num_train=100, num_val=50):
+def CreateMiniWordSet(path_out='wordsets_1000/',num_train=100, num_val=50):
     #define words, sizes, fonts
-    words = words4yo()
+    #words = np.load('words4yo.npy')
+    words = np.load('sorted_wordlist.npy')
+    print(len(words))
     #random.shuffle(words)
     #wordlist =  ['dimanche', 'lundi', 'mots', 'samedi', 'semaine']
-    wordlist = words[:100]
+    wordlist = list(words)  # words[:100]
     sizes = [40, 50, 60, 70, 80]
-    fonts = ['arial','tahoma']
+    fonts = ['Lato-Regular','Inter-Medium','LiberationSerif-Regular']
     xshift = [-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50]
     yshift = [-30, -15, 0, 15, 30]
     
@@ -279,7 +281,7 @@ def CreateMiniWordSet(path_out='wordsets_100cat_100ex/',num_train=100, num_val=5
     for m in ['train', 'val']:
         for f in wordlist:
             target_path = path_out+m+'/'+f
-            os.makedirs(target_path)
+            os.makedirs(target_path, exist_ok=True)
     
     #for each word, create num_train + num_val exemplars, then split randomly into train and val.
     for w in tqdm(wordlist):
@@ -397,3 +399,9 @@ def Phase2Dataset(data_path='imagesets', folder='train', batch_size=2, workers=0
         ]),)
         #target_transform=phase2_target_transform,)
     return dataset
+
+if __name__ == '__main__':
+   CreateMiniWordSet(num_train=10, num_val=5)
+   #CreateMiniWordValSet()
+   #words = np.load('words4yo.npy')
+   #print(words)
