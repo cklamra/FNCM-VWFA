@@ -21,10 +21,9 @@ dataset = WordDataset('wordsets_1000', folder='train')
 dataloader = data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4)
 cat_scores = np.zeros((1, 100))
 
-checkpoint_data = torch.load(model, map_location='cpu')
-print([k for k in checkpoint_data.keys()])
-# net = CORNet_Z_biased_words(checkpoint_data['state_dict']) if biased \
-#     else CORNet_Z_nonbiased_words(checkpoint_data['state_dict'])
+checkpoint_data = torch.load(
+    model,
+    map_location='cuda:0' if torch.cuda.is_available() else 'gpu')
 net = CORNet_Z_biased_words() if biased else CORNet_Z_nonbiased_words()
 net.load_state_dict({k[7:]: v for k,v in checkpoint_data['state_dict'].items()})
 net.to(device)
@@ -45,8 +44,8 @@ for nr in noise_ratios:
     for batch, labels in tqdm(dataloader):
         gc.collect()
 
-        batch.to(device)
-        labels.to(device)
+        batch = batch.to(device)
+        labels = labels.to(device)
 
         v1, v2, v4, it, h, pred_val = net(batch)
 
