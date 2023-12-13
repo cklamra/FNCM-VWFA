@@ -1,3 +1,4 @@
+import os
 import gc
 import torch
 import numpy as np
@@ -8,22 +9,21 @@ from torch.utils import data
 from ds2 import WordDataset
 from clean_cornets import CORNet_Z_biased_words, CORNet_Z_nonbiased_words
 
-model, biased = 'save_lit_bias_z_79_full_nomir.pth.tar', True
-# model, biased = 'save_lit_no_bias_z_79_full_nomir.pth.tar', False
+# model, biased = 'save_lit_bias_z_79_full_nomir.pth.tar', True
+model, biased = 'save_lit_no_bias_z_79_full_nomir.pth.tar', False
 batch_size = 4
 
-noise_ratios = [0]
-#noise_ratios = list([x/10 for x in range(0,11)])
+dataset_dir = 'wordsets_1000_noise'
+noise_ratios = [float(item) for item in os.listdir(dataset_dir)]
+#noise_ratios = list([x/20 for x in range(0,11)])
 print(noise_ratios)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-dataset = WordDataset('wordsets_1000', folder='train')
-dataloader = data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4)
 cat_scores = np.zeros((1, 100))
 
 checkpoint_data = torch.load(
     model,
-    map_location='cuda:0' if torch.cuda.is_available() else 'gpu')
+    map_location='cuda:0' if torch.cuda.is_available() else 'cpu')
 net = CORNet_Z_biased_words() if biased else CORNet_Z_nonbiased_words()
 net.load_state_dict({k[7:]: v for k,v in checkpoint_data['state_dict'].items()})
 net.to(device)
@@ -40,6 +40,8 @@ output = pd.DataFrame({'noise_ratio': [], 'accuracy': []})
 for nr in noise_ratios:
     print('-' * 80)
     print('noise ratio:', nr)
+    dataset = WordDataset(os.path.join(dataset_dir, str(nr)), folder='.')
+    dataloader = data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4)
     all_preds, all_labels = None, None
     for batch, labels in tqdm(dataloader):
         gc.collect()

@@ -17,6 +17,8 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 Image.warnings.simplefilter('ignore')
 import subprocess, shlex, shutil, io, os, random, gc, time
 from tqdm import tqdm
+from skimage.util import random_noise
+from skimage.color import rgb2gray
 #from urllib.request import urlopen
 import pickle
 
@@ -358,6 +360,41 @@ def phase2_target_transform_logit(target):
 
 def phase2_target_transform(target):
     return target + FLAGS.img_classes
+
+
+class AddGaussianNoise(object):
+    def __init__(self, mean=0., std=1.):
+        self.std = std
+        self.mean = mean
+
+    def __call__(self, tensor):
+        return tensor + torch.randn(tensor.size()) * self.std + self.mean
+
+    def __repr__(self):
+        return self.__class__.__name__ + '(mean={0}, std={1})'.format(self.mean, self.std)
+
+
+class AddSaltAndPepperNoise(object):
+    def __init__(self, amount):
+        self.amount = amount
+
+    def __repr__(self):
+        return self.__class__.__name__ + f'(amount={self.amount})'
+
+    def __call__(self, tensor):
+        return Image.fromarray(
+            np.asarray(
+                random_noise(
+                    np.asarray(tensor, dtype='uint8'),
+                    mode='s&p',
+                    salt_vs_pepper=0.5,
+                    clip=True,
+                    amount=self.amount,
+                ),
+                dtype='uint8'
+            )
+        )
+
 
 def WordDataset(data_path='wordsets', folder='train', batch_size=2, workers=0):
     dataset = torchvision.datasets.ImageFolder(
